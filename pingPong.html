@@ -1,0 +1,280 @@
+<!DOCTYPE HTML>
+<html lang="pt-br">
+<head>
+	<meta charset="utf-8">
+	<title>JavaScript Aula 62</title>
+	<style>
+		body{
+			margin: 0px;
+			background-color: #aaa;
+
+		}
+		#dvPainel{
+			display: flex;
+			height: 50px;
+			align-items: center;
+		}
+		.itemPainel{
+			margin: 5px;
+		}
+		#dvJogo{
+			width: 960px;
+			height: 500px;
+			border: 2px solid #0f0;
+			background-color: #000;
+		}
+		#dvBola{
+			position: absolute;
+			top: 240px;
+			left: 475px;
+			width: 20px;
+			height: 20px;
+			background-color: #8b0000;
+			border-radius: 100%;
+		}
+		.barra{
+			position: absolute;
+			width: 20px;
+			height: 140px;
+			background-color: #888;
+			top: 180px;
+		}
+		.esquerda{
+			left: 10px;
+		}
+		.direita{
+			left:930px;
+		}
+		#meio{
+			width: 483px;
+			height: 500px;
+			border-right: 2px solid #888;
+		}
+
+
+	</style>
+
+	<script>
+		//Elementos
+		var vbtIniciar;
+		var vbola;
+		var vcpu;
+		var vjogador;
+		var vPaineltxtPontos
+
+		//controle de animação
+		var game, frames;
+
+		//posições
+		var posBolaX,posBolaY;
+		var posJogadorX,posJogadorY;
+		var posCpuX,posCpuY;
+
+		//Direção de acordo com a tecla
+		var dirJy;
+		
+
+		//Posições iniciais
+		var posJogIniY=180,posJogIniX=10,posCpuIniY=180,posCpuIniX=930,posBolaIniX=475,posBolaIniY=240;
+
+		//Tamanhos
+		var campoX=0,campoY=0,campoW=960,campoH=500;
+		var barraW=20,barraH=140,bolaW=20,bolaH=20;
+
+		//Direção
+		var bolaX,bolaY;
+		var cpuY=0;
+
+		//Velocidade
+		var velBola,velCpu,velJogador;
+
+		//Controle
+		var pontos=0;
+		var tecla;
+		jogo=false;
+
+
+
+		function controlajog(){
+			if(jogo){
+				posJogadorY+=velJogador*dirJy;
+				if(((posJogadorY+barraH)>=campoH)||((posJogadorY)<=0)){
+					posJogadorY+=(velJogador*dirJy)*(-1);
+				}
+				vjogador.style.top=posJogadorY+"px";
+			}
+		}
+
+		function controlacpu(){
+			if(jogo){
+				if((posBolaX > (campoW/2))&&(bolaX > 0)){
+					//Movimentar CPU
+					if(((posBolaY+(bolaH/2)) > (posCpuY+(barraH/2))+velCpu)){
+						//mover para baixo
+						if((posCpuY=barraH) <= campoH){
+							posCpuY+=velCpu;
+						}
+					}else if(((posBolaY+(bolaH/2)) < (posCpuY+barraH/2))-velCpu){
+						//mover para baixo
+						if(posCpuY >= 0){
+							posCpuY-=velCpu;
+						}
+					}
+				}else{
+					//Posicionar CPU no centro
+					if((posCpuY+(barraH/2)) < (campoH/2)){
+						posCpuY+=velCpu;
+					}else if((posCpuY+(barraH/2)) > (campoH/2)){
+						posCpuY-=velCpu;
+					}
+				}
+				vcpu.style.top=posCpuY+"px";
+			}
+		}
+
+		function controlaBola(){
+			//Movimentação bola
+			posBolaX+=velBola*bolaX;
+			posBolaY+=velBola*bolaY;
+
+			//Colisão com jogador
+			if(
+				(posBolaX <= posJogadorX+barraW)&&
+				((posBolaY+bolaH >= posJogadorY)&&(posBolaY <=posJogadorY+barraH))
+				){
+				bolaY=(((posBolaY+(bolaH/2))-(posJogadorY+(barraH/2)))/32);
+				bolaX*=-1;
+			}
+			//Colisão com CPU
+			if(
+				(posBolaX >= posCpuX-barraW)&&
+				((posBolaY+bolaH >= posCpuY)&&(posBolaY <= posCpuY+barraH))
+				){
+				bolaY=(((posBolaY+(bolaH/2))-(posCpuY+(barraH/2)))/32);
+				bolaX*=-1;
+			}
+			//Limites superior e inferior
+			if((posBolaY >= 480)||(posBolaY <= 0)){
+				bolaY*=-1;
+			}
+			//saiu da tela peladireita e pela esquerda
+			if(posBolaX>=(campoW-bolaW)){
+				velBola=0;
+				posBolaX=posBolaIniX;
+				posBolaY=posBolaIniY;
+				posJogadorY=posJogIniY;
+				posCpuY=posCpuIniY;
+				pontos++;
+				vPaineltxtPontos.value=pontos;
+				jogo=false;
+				vjogador.style.top=posJogadorY+"px";
+				vcpu.style.top=posCpuY+"px";
+			}else if(posBolaX <= 0){
+				velBola=0;
+				posBolaX=posBolaIniX;
+				posBolaY=posBolaIniY;
+				posJogadorY=posJogIniY;
+				posCpuY=posCpuIniY;
+				pontos--;
+				vPaineltxtPontos.value=pontos;
+				jogo=false;
+				vjogador.style.top=posJogadorY+"px";
+				vcpu.style.top=posCpuY+"px";
+			}
+			vbola.style.top=posBolaY+"px";
+			vbola.style.left=posBolaX+"px";
+
+		}
+
+		function teclaDw(){
+			tecla=event.keyCode;
+			if(tecla==38){//CIMA
+				dirJy=-1;
+			}else if(tecla==40){//BAIXO
+				dirJy=1;
+			}
+		}
+
+
+
+		function teclaUp(){
+			tecla=event.keyCode;
+			if(tecla==38){//CIMA
+				dirJy=0;
+			}else if(tecla==40){//BAIXO
+				dirJy=0;
+			}
+		}
+
+		function game(){
+			if(jogo){
+				controlajog();
+				controlaBola();
+				controlacpu();
+			}
+			frames=requestAnimationFrame(game);
+		}
+
+		function iniciaJogo(){
+			if(!jogo){
+				velBola=velCpu=velJogador=8;
+				cancelAnimationFrame(frames);
+				jogo=true;
+				dirJy=0
+				bolaY=0
+				if((Math.random()*10)<5){
+					bolaX=-1;
+				}else{
+					bolaX=1;
+				}
+				posBolaX=posBolaIniX;
+				posBolaY=posBolaIniY;
+				posJogadorY=posJogIniY;
+				posJogadorX=posJogIniX;
+				posCpuY=posCpuIniY;
+				posCpuX=posCpuIniX;
+				game();
+			}
+		}
+
+		function inicializa(){
+			velBola=velCpu=velJogador=8;
+			vbtIniciar=document.getElementById("btIniciar");
+			vbtIniciar.addEventListener("click",iniciaJogo);
+			vjogador=document.getElementById("dvJogador");
+			vcpu=document.getElementById("DvCpu");
+			vbola=document.getElementById("dvBola");
+			vPaineltxtPontos=document.getElementById("txtPontos");
+			document.addEventListener("keydown",teclaDw);
+			document.addEventListener("keyup",teclaUp)
+		}
+
+		window.addEventListener("load",inicializa);
+
+		
+
+
+	</script>
+	
+	</head>
+
+	<body>
+		<div id="dvJogo">
+			<div id="meio"></div>
+			<div id="dvBola"></div>
+			<div id="dvJogador" class="barra esquerda"></div>
+			<div id="DvCpu" class="barra direita"></div>
+		</div>
+		<div id="dvPainel">
+			<div class="itemPainel">
+				<label>Pontos</label>
+				<input type="text" id="txtPontos" value="0" size="10">
+			</div>
+			<div class="itemPainel">
+				<button id="btIniciar">Iniciar</button>
+			</div>
+		</div>
+		
+	</body>
+
+	</html>
